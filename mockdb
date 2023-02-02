@@ -1,0 +1,14 @@
+real_estates_db = [
+    RealEstate(id=1, category="Sale", property_type="Apartment", surface=100.0,
+               description="A beautiful apartment in the city center", price=1000000.0,
+               contact_info="John Doe, 123 Main St, john.doe@email.com, 555-555-5555",
+               location="Algiers, Algiers, 123 Main St", photos="photo1.jpg, photo2.jpg"),
+    RealEstate(id=2, category="Rent", property_type="House", surface=200.0,
+               description="A spacious house with a big yard", price=2000000.0,
+               contact_info="Jane Doe, 456 Main St, jane.doe@email.com, 555-555-5556",
+               location="Oran, Ain Turk, 456 Main St", photos="photo3.jpg, photo4.jpg"),
+    RealEstate(id=3, category="Sale", property_type="Land", surface=300.0,
+               description="A large piece of land with a beautiful view", price=3000000.0,
+               contact_info="Jim Smith, 789 Main St, jim.smith@email.com, 555-555-5557",
+               location="Constantine, Constantine, 789 Main St", photos="photo5.jpg, photo6.jpg"),
+]
