@@ -1,17 +1,9 @@
 from fastapi import APIRouter, Body , Depends
 import requests
-from sqlalchemy import Column, Integer, String, Enum
 from starlette.responses import JSONResponse
-from sqlalchemy.orm import sessionmaker , relationship ,Session
+from sqlalchemy.orm import Session
 from db import Base , get_db
-
-
-class User(Base):
-    __tablename__ = 'users'
-    id = Column(Integer, primary_key=True)
-    email = Column(String)
-    role = Column(Enum("user", "admin", name="role_types"), default="user")
-    real_estates = relationship("RealEstate", backref="users")
+from .high import User
 
 router =  APIRouter()
 
@@ -87,9 +79,16 @@ async def read_users(id: int,  db : Session = Depends(get_db)):
     user = db.query(User).filter(User.id == id).first()
     return user
 
+@router.get("/me")
+async def read_users(email: str ,   db : Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == email).first()
+    return user
+
 @router.put("/user/toadmin")
 async def make_admin( id : int, db : Session = Depends(get_db)):
     query = db.query(User).filter(User.id == id)
     query.update({User.role: "admin"})
     db.commit()
     return {"massage" : "You have new admin"}
+
+

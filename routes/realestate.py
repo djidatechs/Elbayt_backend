@@ -1,40 +1,14 @@
-from fastapi import APIRouter ,Query , UploadFile  ,Depends
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import APIRouter ,Query  ,Depends , Body
 from typing import List , Optional
 from pydantic import BaseModel
-from sqlalchemy import  Column, Integer, String, Float, Enum , ForeignKey , LargeBinary
-from sqlalchemy.orm import sessionmaker , relationship , Session
-from sqlalchemy.ext.declarative import declarative_base
-from fastapi_pagination import Page, add_pagination, paginate
-from fastapi_pagination.default import AbstractParams, BasePage, RawParams
-import jwt
-from .user import User
+from sqlalchemy.orm import  Session , joinedload
 import base64
-from db import engine , Base , get_db
+from .high import RealEstate  , User , Photos , Messages , Communes , Wilayas 
+from db import  get_db
 
 
 router = APIRouter()
 
-
-
-class RealEstate(Base):
-    __tablename__ = "realestate"
-    id = Column(Integer, primary_key=True, index=True)
-    category = Column(Enum("Sale", "Exchange", "Rent", "Vacation Rent", name="category_enum"))
-    property_type = Column(String)
-    surface = Column(Float)
-    description = Column(String)
-    price = Column(Float)
-    contact_phone = Column(String)
-    property_address = Column(String)
-
-    photos = relationship("Photos", backref="realestate")
-
-    user_id = Column(Integer, ForeignKey("users.id"))
-
-    wilaya_id = Column(Integer, ForeignKey("wilayas.id"))
-
-    commune_id = Column(Integer, ForeignKey("communes.id"))
 
 class RealEstateCreate(BaseModel):
     category: str
@@ -47,7 +21,7 @@ class RealEstateCreate(BaseModel):
     commune_id: int
     user: str
     property_address: str
-    photos: List[str] = []
+    photos:  List[str]
 
 
 
@@ -69,11 +43,20 @@ async def create_realestate(realestate: RealEstateCreate , db : Session = Depend
     )
     db.add(realestate_)
     db.flush()
-
+    print("\n\n\n")
+    print("\n\n\n")
+    print("\n\n\n")
+    print(realestate.photos)
+    print("\n\n\n")
+    print("\n\n\n")
+    print("\n\n\n")
 
     for photo in realestate.photos:
-        new_photo = Photos(data=photo, realestate_id=realestate_.id)
-        db.add(new_photo)
+        decoded_photo = base64.b64decode(photo)
+        photo_db = Photos(data=decoded_photo,realestate_id=realestate_.id)
+        db.add(photo_db)
+    
+
     db.commit()
     
 
@@ -84,15 +67,18 @@ async def create_realestate(realestate: RealEstateCreate , db : Session = Depend
 
 @router.delete("/realestate/{id}/remove")
 async def remove_realestate(id: int , db : Session = Depends(get_db)):
-    real_estate = db.query(RealEstate).filter_by(id=id).first()
+    real_estate = db.query(RealEstate).filter(RealEstate.id==id).first()
     db.delete(real_estate)
     db.commit()
     return {"message": "Real estate deleted"}
 
 @router.get("/realestate/{id}")
 async def read_realestate_with_id(id: int , db : Session = Depends(get_db) ):
-    realestate = db.query(RealEstate).get(id)
+    realestate = db.query(RealEstate).options(joinedload(RealEstate.photos)).get(id)
+    realestate.encoded_photos = [{"id": photo.id, "data": base64.b64encode(photo.data).decode("utf-8")} for photo in realestate.photos]
+    realestate.photos = []
     return realestate
+
 
 @router.get("/realestate")
 async def read_real_estates_filter(
@@ -102,12 +88,30 @@ async def read_real_estates_filter(
     category: Optional[str] = Query(None, alias="category"),
     property_type: Optional[str] = Query(None, alias="property_type"),
     wilaya: Optional[str] = Query(None, alias="wilaya"),
-    commune: Optional[str] = Query(None, alias="commune")
+    commune: Optional[str] = Query(None, alias="commune"),
+    nophotos: Optional[str] = Query(None, alias="nophotos"),
+    onephoto : Optional[str] = Query(None, alias="onephoto")
 ):
     
 
-    
-    filtered_listings = db.query(RealEstate).all()
+    if nophotos :
+        filtered_listings = db.query(RealEstate).all()
+    else :
+        filtered_listings = db.query(RealEstate).options(joinedload(RealEstate.photos)).all()
+        if onephoto : 
+             for realestate in filtered_listings:
+                if realestate.photos : 
+                    photo = realestate.photos[0]
+                    photo = {"id": photo.id, "data": base64.b64encode(photo.data).decode("utf-8")}
+                    realestate.encoded_photos = [photo]
+                else :
+                    realestate.encoded_photos = []
+                realestate.photos = []
+        else :                
+            for realestate in filtered_listings:
+                realestate.encoded_photos = [{"id": photo.id, "data": base64.b64encode(photo.data).decode("utf-8")} for photo in realestate.photos]
+                realestate.photos = []
+
     
     if category:
         filtered_listings = [listing for listing in filtered_listings if listing.category == category]
@@ -118,9 +122,7 @@ async def read_real_estates_filter(
     elif wilaya:
         filtered_listings = [listing for listing in filtered_listings if wilaya ==str( listing.wilaya_id)]
     
-
-    filtered_listings
-
+  
 
     def paginate(array, size, page_number):
         start = (page_number - 1) * size
@@ -164,31 +166,66 @@ async def read_wilayas(communeID : int  , db : Session = Depends(get_db)):
     return {"wilaya": wilaya.name , "commune" : commune.name}
 
 @router.get("/photos_realestate")
-async def read_realestate_photos(realestate : int  , db : Session = Depends(get_db)):
+async def read_realestate_photos(realestate : int  , onlyone : str , db : Session = Depends(get_db)):
     photos = db.query(Photos).filter(Photos.realestate_id == realestate).all()
+    if not photos:
+        return []
+    if onlyone : 
+        photo = photos[0]
+        photo = {"id": photo.id, "data": base64.b64encode(photo.data).decode("utf-8")}
+        return [photo]
+
+    else:
+        photos = [{"id": photo.id, "data": base64.b64encode(photo.data).decode("utf-8")} for photo in photos]
+    
+        
     return photos
 
-class Photos(Base):
-    __tablename__ = 'photos'
-    id = Column(Integer, primary_key=True)
-    data = Column(String)
-    realestate_id = Column(Integer, ForeignKey("realestate.id"))
 
-class Wilayas(Base):
-    __tablename__ = "wilayas"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    communes = relationship("Communes", backref="wilayas")
-    realestate = relationship("RealEstate", backref="wilayas")
+@router.get("/messages")
+async def read_messages(  sender_id :Optional[int] = Query(None, alias="sender_id") ,  db : Session = Depends(get_db)):
+    if sender_id:
+        messages = db.query(Messages).filter(Messages.sender_id == sender_id).all()
+        return messages
+    return []
 
-  
-class Communes(Base):
-    __tablename__ = "communes"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    wilaya_id = Column(Integer, ForeignKey("wilayas.id"))
-    realestate = relationship("RealEstate", backref="communes")
-  
+
+    
+@router.post("/messages")
+async def write_messages(data = Body(...),db : Session = Depends(get_db)):
+    text  = data.get("text" )
+    name  = data.get("name" )
+    adress  = data.get("adress" )
+    phone  = data.get("phone" )
+    email = data.get("email")
+    realestate_id  = data.get("realestate_id" )
+    
+    
+    sender_id = db.query(User).filter(User.email == email).first()
+    sender_id = sender_id.id
+    print (sender_id)    
+    recipient_id =  db.query(RealEstate).filter(RealEstate.id == int(realestate_id)).first()
+    recipient_id = recipient_id.user_id
+
+    Object = Messages (
+        text=text ,
+        name=name ,
+        adress=adress ,
+        phone=phone ,
+        email=email ,
+        realestate_id=realestate_id ,
+        sender_id=sender_id ,
+        recipient_id=recipient_id ,
+    )
+
+    db.add(Object)
+    db.flush()
+    db.commit()
+    
+    return {"ok" : True }
+
+
+
 #Base.metadata.create_all(bind=engine)
 
 
