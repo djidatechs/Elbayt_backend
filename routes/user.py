@@ -22,7 +22,7 @@ async def google_oauth(data = Body(...) ,db :  Session = Depends(get_db)):
             "code": code,
             "client_id": "577253181136-vsp9pem3lhc62r9oajr579c9p1ihpokr.apps.googleusercontent.com",
             "client_secret": "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",
-            "redirect_uri": "http://localhost:3000/signup",
+            "redirect_uri": "https://elbaytdz.netlify.app/signup",
             "grant_type": "authorization_code",
             },
             )
@@ -60,7 +60,7 @@ async def google_oauth(data = Body(...) ,db :  Session = Depends(get_db)):
 
     # Return the access token along with the proper CORS headers
     headers = {
-    "Access-Control-Allow-Origin": "http://localhost:3000",
+    "Access-Control-Allow-Origin": "https://elbaytdz.netlify.app",
     "Access-Control-Allow-Credentials": "true",
     }
     return JSONResponse(
