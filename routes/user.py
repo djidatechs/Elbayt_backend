@@ -63,11 +63,7 @@ async def google_oauth(data = Body(...) ,db :  Session = Depends(get_db)):
     "Access-Control-Allow-Origin": "https://elbaytdz.netlify.app",
     "Access-Control-Allow-Credentials": "true",
     }
-    return JSONResponse(
-        content={"access_token": access_token , "user_info" : user_info},
-        headers=headers
-    )
-
+    return {"access_token": access_token , "user_info" : user_info}
 
 
 @router.get("/users")
