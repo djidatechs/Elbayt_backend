@@ -27,7 +27,10 @@ async def google_oauth(data = Body(...) ,db :  Session = Depends(get_db)):
             },
             )
 
-    access_token = response.json().get("access_token", None) #access "access_token" value and if there's no value makes it none with "None"
+    access_token = response.json()
+    access_token = access_token.get("access_token", None)#access "access_token" value and if there's no value makes it none with "None"
+    print(access_token)
+
 
 
     # fetch user information
@@ -39,12 +42,14 @@ async def google_oauth(data = Body(...) ,db :  Session = Depends(get_db)):
     )
     user_info = response.json()
     email = user_info.get("email",None)
+    print(user_info)
     
 
     # check if user exists in the database
     user_look = db.query(User).filter(User.email == email).first()
     print ("this is userlook") 
-    print(user_look.role)
+    print(user_look)
+    print(email)
     if user_look is not None :
         user_info["role"] = user_look.role
     else : 
@@ -54,15 +59,13 @@ async def google_oauth(data = Body(...) ,db :  Session = Depends(get_db)):
     if user_look is None and email is not None :
         # create a new user
         user = User(email=user_info['email'])
+        print(user)
         db.add(user)
         db.commit()
         db.close()
 
     # Return the access token along with the proper CORS headers
-    headers = {
-    "Access-Control-Allow-Origin": "https://elbaytdz.netlify.app",
-    "Access-Control-Allow-Credentials": "true",
-    }
+  
     return {"access_token": access_token , "user_info" : user_info}
 
 
