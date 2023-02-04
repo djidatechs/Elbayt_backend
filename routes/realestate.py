@@ -185,7 +185,7 @@ async def read_realestate_photos(realestate : int  , onlyone : str , db : Sessio
 @router.get("/messages")
 async def read_messages(  sender_id :Optional[int] = Query(None, alias="sender_id") ,  db : Session = Depends(get_db)):
     if sender_id:
-        messages = db.query(Messages).filter(Messages.sender_id == sender_id).all()
+        messages = db.query(Messages).filter(Messages.recipient_id == sender_id).all()
         return messages
     return []
 
@@ -203,7 +203,9 @@ async def write_messages(data = Body(...),db : Session = Depends(get_db)):
     
     sender_id = db.query(User).filter(User.email == email).first()
     sender_id = sender_id.id
-    print (sender_id)    
+    
+
+
     recipient_id =  db.query(RealEstate).filter(RealEstate.id == int(realestate_id)).first()
     recipient_id = recipient_id.user_id
 
