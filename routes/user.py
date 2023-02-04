@@ -47,6 +47,7 @@ async def google_oauth(data = Body(...) ,db :  Session = Depends(get_db)):
 
     # check if user exists in the database
     user_look = db.query(User).filter(User.email == email).first()
+
     print ("this is userlook") 
     print(user_look)
     print(email)
@@ -62,7 +63,6 @@ async def google_oauth(data = Body(...) ,db :  Session = Depends(get_db)):
         print(user)
         db.add(user)
         db.commit()
-        db.close()
 
     # Return the access token along with the proper CORS headers
   
