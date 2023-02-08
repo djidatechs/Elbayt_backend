@@ -1,5 +1,5 @@
 
-from sqlalchemy import  Column, Integer, String, Float, Enum , ForeignKey , LargeBinary
+from sqlalchemy import  Column, Integer, VARCHAR, Float, Enum , ForeignKey , LargeBinary
 from sqlalchemy.orm import relationship 
 from db import Base , engine
 
@@ -9,12 +9,12 @@ class RealEstate(Base):
     __tablename__ = "realestate"
     id = Column(Integer, primary_key=True, index=True)
     category = Column(Enum("Sale", "Exchange", "Rent", "Vacation Rent", name="category_enum"))
-    property_type = Column(String)
+    property_type = Column(VARCHAR(100))
     surface = Column(Float)
-    description = Column(String)
+    description = Column(VARCHAR(100))
     price = Column(Float)
-    contact_phone = Column(String)
-    property_address = Column(String)
+    contact_phone = Column(VARCHAR(100))
+    property_address = Column(VARCHAR(100))
 
     photos = relationship("Photos", backref="realestate")
     messages = relationship("Messages", backref="realestate")
@@ -38,7 +38,7 @@ class Photos(Base):
 class Wilayas(Base):
     __tablename__ = "wilayas"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
+    name = Column(VARCHAR(100))
     communes = relationship("Communes", backref="wilayas")
     realestate = relationship("RealEstate", backref="wilayas")
 
@@ -46,18 +46,18 @@ class Wilayas(Base):
 class Communes(Base):
     __tablename__ = "communes"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
+    name = Column(VARCHAR(100))
     wilaya_id = Column(Integer, ForeignKey("wilayas.id"))
     realestate = relationship("RealEstate", backref="communes")
   
 class Messages(Base):
     __tablename__ = "messages"
     id = Column(Integer, primary_key=True, index=True)
-    text = Column(String)
-    name =  Column(String)
-    adress =  Column(String)
-    phone = Column(String)
-    email =  Column(String)
+    text = Column(VARCHAR(100))
+    name =  Column(VARCHAR(100))
+    adress =  Column(VARCHAR(100))
+    phone = Column(VARCHAR(100))
+    email =  Column(VARCHAR(100))
     realestate_id = Column(Integer, ForeignKey("realestate.id"))
     sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     recipient_id = Column(Integer, ForeignKey("users.id"), nullable=False)
@@ -68,7 +68,7 @@ class Messages(Base):
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
-    email = Column(String)
+    email = Column(VARCHAR(100))
     role = Column(Enum("user", "admin", name="role_types"), default="user")
     real_estates = relationship("RealEstate", backref="user")
     sent_messages = relationship("Messages", foreign_keys=[Messages.sender_id], backref="sender_user")
