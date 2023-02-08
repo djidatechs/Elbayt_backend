@@ -43,13 +43,7 @@ async def create_realestate(realestate: RealEstateCreate , db : Session = Depend
     )
     db.add(realestate_)
     db.flush()
-    print("\n\n\n")
-    print("\n\n\n")
-    print("\n\n\n")
-    print(realestate.photos)
-    print("\n\n\n")
-    print("\n\n\n")
-    print("\n\n\n")
+   
 
     for photo in realestate.photos:
         decoded_photo = base64.b64decode(photo)
