@@ -116,7 +116,7 @@ async def read_real_estates_filter(
     if category:
         filtered_listings = [listing for listing in filtered_listings if listing.category == category]
     if property_type:
-        filtered_listings = [listing for listing in filtered_listings if listing.property_type == property_type]
+        filtered_listings = [listing for listing in filtered_listings if property_type.lower() in listing.property_type.lower() ]
     if commune:
         filtered_listings = [listing for listing in filtered_listings if commune == str(listing.commune_id)]
     elif wilaya:
