@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import  Session , joinedload
 import base64
 from .high import RealEstate  , User , Photos , Messages , Communes , Wilayas 
-from db import  get_db
+from db import  get_db ,Base ,engine
 
 
 router = APIRouter()
@@ -222,7 +222,7 @@ async def write_messages(data = Body(...),db : Session = Depends(get_db)):
 
 
 
-#Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine)
 
 
 
