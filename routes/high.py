@@ -75,4 +75,4 @@ class User(Base):
     received_messages = relationship("Messages", foreign_keys=[Messages.recipient_id], backref="recipient_user" , overlaps="recipient_user")
 
 
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
