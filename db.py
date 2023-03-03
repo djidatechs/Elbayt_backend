@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker , relationship ,Session
 Base = declarative_base()
-engine = create_engine("postgresql://postgres:OjSHIzgkQx1HrJ1EQUmu@containers-us-west-163.railway.app:7660/railway")
+engine = create_engine("postgresql://postgres:q3hKA2uUfmaNeVRat8cz@containers-us-west-135.railway.app:5661/railway")
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 def get_db():
     db = SessionLocal()
